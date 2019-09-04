@@ -21,7 +21,7 @@ Para detectar alterações no diretório de entrada, é recomendado usar a class
 
 Em questão de performance, carregar as linhas em um array é mais eficiente do que usar uma lista; contudo, como não sabemos o tamanho máximo de linhas que os arquivos podem ter, não é possível pré-alocar memória.
 
-Para manipular arquivos muito grandes, é recomendado usar a classe "MemoryMappedFile". Contudo, não foi possível implementá-la de forma consistente.
+Para manipular arquivos muito grandes, é recomendado usar a classe "MemoryMappedFile". Contudo, não foi possível implementá-la de forma consistente. Outras alternativas seriam usar ferramentas de cache (como memcached ou Redis), ou um banco Sqlite para guardar temporariamente os registros.
 
 As ações de parsing foram implementadas de acordo com o especificado; contudo, os objetos resultantes não são armazenados em algum banco de dados ou similar. Caso desejar-se ganhar velocidade, os parsings podem ser omitidos ou reduzidos (apenas dando split nas linhas, em vez de checar os tipos).
 
