@@ -10,7 +10,7 @@ Este projeto não possui nenhuma dependência externa; o desenvolvimento foi pen
 # Build e funcionamento
 Basta executar o projeto a partir de qualquer lugar da máquina; a aplicação verifica a pasta local do usuário e checa se existe a pasta "data", com as subpastas "in" e "out"; se não existirem tais pastas, a aplicação cria as mesmas.
 
-À medida que arquivos vão sendo criados na pasta "in", estes vão sendo processados pela aplicação e movidos para um diretório "Processados". Cada arquivo gera um arquivo de saída na pasta "out". 
+À medida que arquivos vão sendo criados na pasta "in", estes vão sendo processados pela aplicação e movidos para um diretório "processed". Cada arquivo gera um arquivo de saída na pasta "out". 
 
 A especificação menciona "processamemento em lote"; contudo, todas as demais descrições tratam como se o arquivo de saída fosse correspondente a um único arquivo de entrada, e não a um conjunto; esta última visão foi a escolhida para o projeto.
 
