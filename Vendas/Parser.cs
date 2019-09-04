@@ -11,20 +11,22 @@ namespace Vendas
         public static dynamic ParseString(string line)
         {
             string[] parsedString = line.Split('ç');
-            switch (int.TryParse(parsedString[0], out int identifier) ? identifier : throw new FormatException(""))
+            switch (int.TryParse(parsedString[0], out int identifier) ? identifier : throw new FormatException
+                (string.Format("Identificador de classe não é um número: {0}", parsedString[0])))
             {
                 case (1):
                     return new Salesman
                     {
-                        Cpf = int.TryParse(parsedString[1], out int cpf) ? cpf : throw new FormatException(""),
+                        Cpf = parsedString[1],
                         Name = parsedString[2],
-                        Salary = decimal.TryParse(parsedString[3], out decimal salary) ? salary : throw new FormatException("")
+                        Salary = decimal.TryParse(parsedString[3], out decimal salary) ? salary : throw new FormatException
+                            (string.Format("Salario não é um decimal: {0}", parsedString[3]))
                     };
 
                 case (2):
                     return new Client
                     {
-                        Cnpj = long.TryParse(parsedString[1], out long cnpj) ? cnpj : throw new FormatException(""),
+                        Cnpj = parsedString[1],
                         Name = parsedString[2],
                         BusinessArea = parsedString[3]
                     };
@@ -33,13 +35,14 @@ namespace Vendas
                     List<ItemSale> itemSale = BuildListItems(parsedString);
                     return new Sale
                     {
-                        SaleId = int.TryParse(parsedString[1], out int id) ? id : throw new FormatException(""),
+                        SaleId = int.TryParse(parsedString[1], out int id) ? id : throw new FormatException(string.Format
+                            ("Id de venda não é um número: {0}", parsedString[1])),
                         ItemSale = itemSale,
                         SalesmanName = parsedString[3]
                     };
 
                 default:
-                    throw new Exception("");
+                    throw new Exception("Classe não reconhecida");
             }
         }
 
@@ -49,9 +52,9 @@ namespace Vendas
             ConcurrentBag<ItemSale> itemSale = new ConcurrentBag<ItemSale>();
             Parallel.ForEach(listItems, item =>
             {
-                string formattedString = item.Replace("[", "").Replace("]",",");
+                string formattedString = item.Replace("[", "").Replace("]", ",");
                 string[] itemParsed = formattedString.Split('-');
-        
+
                 itemSale.Add(new ItemSale
                 {
                     IdItem = int.TryParse(itemParsed[0], out int idItem) ? idItem : throw new FormatException(),

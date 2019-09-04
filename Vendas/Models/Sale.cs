@@ -9,11 +9,9 @@ namespace Vendas
         public List<ItemSale> ItemSale { get; set; }
         public string SalesmanName { get; set; }
 
-        private decimal totalSale;
         public decimal TotalSale
         {
-            get => totalSale;
-            set => totalSale = ItemSale.Sum(it => it.Price * it.Quantity);
+            get => ItemSale.Sum(it => it.Price * it.Quantity);
         }
     }
 }

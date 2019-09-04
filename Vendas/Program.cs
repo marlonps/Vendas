@@ -9,95 +9,89 @@ namespace Vendas
 {
     internal class Program
     {
-        private static readonly string docPathIn =  @"C:\Users\marlon.silva\Documents\data\in";
-
-        private static readonly string docPathOut = @"C:\Users\marlon.silva\Documents\data\out";
+        private static readonly string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        private static string docPathIn;
+        private static string docPathProcessed;
+        private static string docPathOut;
         private static int countSalesman;
         private static int countClient;
         private static decimal topSale;
-        private static  ConcurrentDictionary<string, decimal> dictionarySalesmanSales = new ConcurrentDictionary<string, decimal>();
+        private static ConcurrentDictionary<string, decimal> dictionarySalesmanSales = new ConcurrentDictionary<string, decimal>();
 
         public static void Main(string[] args)
         {
-            using (FileSystemWatcher watcher = new FileSystemWatcher(docPathIn))
-            {
-                // Watch for changes in LastAccess and LastWrite times, and
-                // the renaming of files or directories.
-                watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite;
-                watcher.Filter = "";
-                // Add event handlers.
-                watcher.Created += OnChanged;
-
-                watcher.EnableRaisingEvents = true;
-                //Console.WriteLine("Press 'q' to quit the sample.");
-                //while (Console.Read() != 'q') ;
-            }
+            string data = Directory.CreateDirectory(Path.Combine(homePath, @"data")).FullName;
+            docPathIn = Directory.CreateDirectory(Path.Combine(data, @"in")).FullName;
+            docPathProcessed = Directory.CreateDirectory(Path.Combine(data, @"processed")).FullName;
+            docPathOut = Directory.CreateDirectory(Path.Combine(data, @"out")).FullName;
             while (true)
             {
                 ProcessRead();
             }
-
         }
 
-        private static async void OnChanged(object sender, FileSystemEventArgs e)
+        private static void ProcessRead()
         {
-            await ProcessRead();
-        }
-
-        private static async Task ProcessRead()
-        {
-            //se soubermos o tamanho maximo de linhas do arquivo - ou estipularmos um limite
-            //podemos usar um Array em vez de List, o que aumenta a performance, devido à alocação fixa de memória
-            //memcached, sqlite, redis -> memoria
-            //filebeats -> logstash -> output
             List<string> allLines = new List<string>();
-            //int MAX = 0;
-            await Task.Run(() =>
+
+            IEnumerable<string> fileEntries = Directory.EnumerateFiles(docPathIn);
+            foreach (string fname in fileEntries)
+
             {
-                IEnumerable<string> fileEntries = Directory.EnumerateFiles(docPathIn);
-                foreach (string fname in fileEntries)
+                string nameFile = Path.GetFileName(fname);
+                try
                 {
-                    try
+                    allLines = new List<string>();
+                    using (StreamReader sr = File.OpenText(fname))
                     {
-                        allLines = new List<string>();
-                        using (StreamReader sr = File.OpenText(fname))
+                        while (!sr.EndOfStream)
                         {
-                            while (!sr.EndOfStream)
-                            {
-                                allLines.Add(sr.ReadLine());
-                            }
-                        } //CLOSE THE FILE because we are now DONE with it.
-                        Parallel.ForEach(allLines, line =>
-                        {
-                            Processor(Parser.ParseString(line));
-                        });
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        Console.WriteLine("Not enough memory. Couldn't perform this test.");
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine("EXCEPTION. Couldn't perform this test.");
-                    }
-                    finally
-                    {
-                        if (allLines != null)
-                        {
-                            allLines.Clear();
-                            allLines = null;
+                            allLines.Add(sr.ReadLine());
                         }
-                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPathOut, "WriteTextAsync.txt")))
+                    } //Fechando arquivo, pois não é mais necessário
+                    Parallel.ForEach(allLines, line =>
+                    {
+                        try
                         {
-                            outputFile.WriteAsync(string.Format(@"Client count: {0}, Salesman count: {1}, Top sale: {2},
-                                Worse salesman: {3}", countClient, countSalesman, topSale, 
-                                dictionarySalesmanSales.Min().Key));
+                            dynamic parsedLine = Parser.ParseString(line);
+                            Processor(parsedLine);
                         }
-                        // File.Move(arq, nomeErro);
-                    }
-                    GC.Collect();
+                        catch (FormatException f)
+                        {
+                            Console.WriteLine(f);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                    });
                 }
-            });
+                catch (OutOfMemoryException)
+                {
+                    Console.WriteLine("Memória insuficiente");
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Exceção genérica, favor verificar");
+                }
+                finally
+                {
+                    if (allLines.Count > 0)
+                    {
+                        allLines.Clear();
+                        allLines = null;
+
+                        using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPathOut, "output_" + nameFile)))
+                        {
+                            outputFile.WriteAsync(string.Format(@"Client count: {0}, Salesman count: {1}, Top sale: {2}, Worse salesman: {3}",
+                                countClient, countSalesman, topSale,
+                                dictionarySalesmanSales.Aggregate((l, r) => l.Value < r.Value ? l : r).Key));
+                        }
+                        File.Move(fname, Path.Combine(docPathProcessed, nameFile));
+                    }
+                }
+                GC.Collect();
+            }
         }
 
         private static void Processor(dynamic dynamic)
