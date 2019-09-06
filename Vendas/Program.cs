@@ -54,7 +54,10 @@ namespace Vendas
                         try
                         {
                             dynamic parsedLine = Parser.ParseString(line);
-                            Processor(parsedLine);
+                            if (parsedLine != null)
+                            {
+                                Processor(parsedLine);
+                            }
                         }
                         catch (FormatException f)
                         {
@@ -68,11 +71,7 @@ namespace Vendas
                 }
                 catch (OutOfMemoryException)
                 {
-                    Console.WriteLine("Memória insuficiente");
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Exceção genérica, favor verificar");
+                    Console.WriteLine("Insufficient memory");
                 }
                 finally
                 {
@@ -83,7 +82,7 @@ namespace Vendas
 
                         using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPathOut, "output_" + nameFile)))
                         {
-                            outputFile.WriteAsync(string.Format(@"Client count: {0}, Salesman count: {1}, Top sale: {2}, Worse salesman: {3}",
+                            outputFile.WriteAsync(string.Format(@"Client count: {0}; Salesman count: {1}; Top sale: {2}; Worst salesman: {3}.",
                                 countClient, countSalesman, topSale,
                                 dictionarySalesmanSales.Aggregate((l, r) => l.Value < r.Value ? l : r).Key));
                         }
